@@ -1,0 +1,6 @@
+Jar build 
+
+javac JsonAutoFiller.java
+jar cfe JsonAutoFiller.jar JsonAutoFiller JsonAutoFiller.class
+
+java -jar JsonAutoFiller.jar
