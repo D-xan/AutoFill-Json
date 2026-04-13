@@ -27,6 +27,9 @@ public class JsonAutoFiller extends JFrame {
     private JTextArea inputArea;
     private JTextArea outputArea;
     private JCheckBox overwriteCheckbox;
+    
+    // Counter for sequential fallback values
+    private int genericValueCounter = 1;
 
     public JsonAutoFiller() {
         setTitle("JSON Auto Fill Generator");
@@ -184,6 +187,8 @@ public class JsonAutoFiller extends JFrame {
         if (json.isEmpty()) return;
 
         try {
+            // Reset counter for every new fill operation
+            genericValueCounter = 1;
             String result = processJson(json, overwriteCheckbox.isSelected());
             outputArea.setText(result);
         } catch (Exception ex) {
@@ -222,7 +227,9 @@ public class JsonAutoFiller extends JFrame {
         if (k.contains("active") || k.contains("status")) return true;
         if (k.contains("count") || k.contains("amount")) return (int)(Math.random() * 999);
         if (k.contains("city")) return "Silicon Valley";
-        return "Auto-Generated Content";
+        
+        // Sequential generic value generator
+        return "Value " + (genericValueCounter++);
     }
 
     private void showCustomDialog(String title, String msg) {
@@ -272,7 +279,6 @@ public class JsonAutoFiller extends JFrame {
             
             // Text Rendering
             FontMetrics fm = g.getFontMetrics();
-            Rectangle r = getBounds();
             int x = (getWidth() - fm.stringWidth(getText())) / 2;
             int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
             g.drawString(getText(), x, y);
