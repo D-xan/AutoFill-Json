@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
+import java.awt.image.BufferedImage;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,7 +34,41 @@ public class JsonAutoFiller extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         getContentPane().setBackground(BG_MAIN);
+        
+        // Initialize Icon
+        setAppIcon();
+        
         initComponents();
+    }
+
+    /**
+     * Generates a custom icon programmatically so the JAR has a visual identity.
+     */
+    private void setAppIcon() {
+        try {
+            int size = 64;
+            BufferedImage icon = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = icon.createGraphics();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            // Background Circle
+            g2.setColor(ACCENT_CYAN);
+            g2.fillOval(4, 4, size - 8, size - 8);
+
+            // Inner "J" Lettering
+            g2.setColor(BG_MAIN);
+            g2.setFont(new Font("SansSerif", Font.BOLD, 40));
+            FontMetrics fm = g2.getFontMetrics();
+            String text = "J";
+            int x = (size - fm.stringWidth(text)) / 2;
+            int y = ((size - fm.getHeight()) / 2) + fm.getAscent();
+            g2.drawString(text, x, y);
+
+            g2.dispose();
+            setIconImage(icon);
+        } catch (Exception e) {
+            // Fallback: If icon generation fails, app continues without icon
+        }
     }
 
     private void initComponents() {
@@ -57,6 +92,7 @@ public class JsonAutoFiller extends JFrame {
         overwriteCheckbox.setOpaque(false);
         overwriteCheckbox.setForeground(TEXT_MUTED);
         overwriteCheckbox.setFocusPainted(false);
+        overwriteCheckbox.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         ModernButton fillBtn = new ModernButton("Auto Fill Fields", true);
         fillBtn.addActionListener(e -> handleFill());
@@ -79,8 +115,8 @@ public class JsonAutoFiller extends JFrame {
         workspace.setBackground(BG_MAIN);
         workspace.setBorder(new EmptyBorder(0, 30, 30, 30));
 
-        inputArea = createStyledTextArea("Input JSON Structure...");
-        outputArea = createStyledTextArea("Filled Output Result...");
+        inputArea = createStyledTextArea();
+        outputArea = createStyledTextArea();
         outputArea.setEditable(false);
 
         workspace.add(createLabeledPanel("SOURCE SCHEMA", inputArea));
@@ -123,12 +159,15 @@ public class JsonAutoFiller extends JFrame {
         JScrollPane scroll = new JScrollPane(area);
         scroll.setBorder(new LineBorder(BORDER_GLOW, 1, true));
         scroll.getViewport().setBackground(BG_CARD);
+        // Style scrollbars
+        scroll.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0));
+        scroll.getHorizontalScrollBar().setPreferredSize(new Dimension(0, 8));
         p.add(scroll, BorderLayout.CENTER);
         
         return p;
     }
 
-    private JTextArea createStyledTextArea(String placeholder) {
+    private JTextArea createStyledTextArea() {
         JTextArea area = new JTextArea();
         area.setBackground(BG_CARD);
         area.setForeground(TEXT_MAIN);
@@ -205,6 +244,7 @@ public class JsonAutoFiller extends JFrame {
             setForeground(primary ? BG_MAIN : ACCENT_CYAN);
             setFont(new Font("SansSerif", Font.BOLD, 13));
             setCursor(new Cursor(Cursor.HAND_CURSOR));
+            setPreferredSize(new Dimension(160, 40));
 
             addMouseListener(new MouseAdapter() {
                 @Override public void mouseEntered(MouseEvent e) { hovering = true; repaint(); }
@@ -219,14 +259,23 @@ public class JsonAutoFiller extends JFrame {
             
             if (primary) {
                 g2.setColor(hovering ? ACCENT_CYAN.brighter() : ACCENT_CYAN);
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
             } else {
-                g2.setColor(new Color(34, 211, 238, hovering ? 40 : 20));
+                g2.setColor(new Color(34, 211, 238, hovering ? 40 : 15));
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
+                g2.setColor(ACCENT_CYAN);
+                g2.setStroke(new BasicStroke(1.5f));
                 g2.draw(new RoundRectangle2D.Float(1, 1, getWidth()-2, getHeight()-2, 12, 12));
             }
             
-            g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 12, 12));
             g2.dispose();
-            super.paintComponent(g);
+            
+            // Text Rendering
+            FontMetrics fm = g.getFontMetrics();
+            Rectangle r = getBounds();
+            int x = (getWidth() - fm.stringWidth(getText())) / 2;
+            int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+            g.drawString(getText(), x, y);
         }
     }
 
